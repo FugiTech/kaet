@@ -25,6 +25,7 @@ var (
 	MASHAPE_KEY   = os.Getenv("MASHAPE_KEY")
 	CLIENT_ID     = os.Getenv("CLIENT_ID")
 	CLIENT_SECRET = os.Getenv("CLIENT_SECRET")
+	GITHUB_SECRET = os.Getenv("GITHUB_SECRET")
 )
 
 func must(err error) {
@@ -38,6 +39,7 @@ func main() {
 	log.Printf("MASHAPE_KEY=%v\n", MASHAPE_KEY)
 	log.Printf("CLIENT_ID=%v\n", CLIENT_ID)
 	log.Printf("CLIENT_SECRET=%v\n", CLIENT_SECRET)
+	log.Printf("GITHUB_SECRET=%v\n", GITHUB_SECRET)
 
 	log.Print("Let's do this thing!\n")
 	c, err := net.Dial("tcp", "irc.chat.twitch.tv:6667")
