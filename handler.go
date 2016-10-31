@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -90,6 +91,8 @@ func handle(out chan string, m *message) {
 	switch m.Command {
 	case "PING":
 		out <- fmt.Sprintf("PONG :%s\r\n", strings.Join(m.Args, " "))
+	case "RECONNECT":
+		os.Exit(69)
 	case "PRIVMSG":
 		msg := strings.ToLower(m.Args[1])
 		for _, prefix := range cmdPrefixes {
