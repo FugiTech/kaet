@@ -70,6 +70,7 @@ func init() {
 	cmds.cmds["uptime"] = &command{func(_ string) string { return getUptime(CHANNEL) }, false}
 	cmds.cmds["game"] = &command{func(_ string) string { return getGame(CHANNEL, true) }, false}
 	cmds.cmds["quote"] = &command{func(q string) string { return quotes.Random(q) }, false}
+	cmds.cmds["sourcecode"] = &command{func(q string) string { return "Contribute to kaet's source code at github.com/Fugiman/kaet VoHiYo" }, false}
 
 	// Mod commands
 	cmds.cmds["addquote"] = &command{cmdAddQuote, true}
@@ -85,6 +86,8 @@ func init() {
 	cmds.Alias("del", "removecommand")
 	cmds.Alias("delcom", "removecommand")
 	cmds.Alias("delcommand", "removecommand")
+	cmds.Alias("source", "sourcecode")
+	cmds.Alias("code", "sourcecode")
 }
 
 func handle(out chan string, m *message) {
