@@ -58,7 +58,7 @@ func githubWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hmacer := hmac.New(hasher, GITHUB_SECRET)
+	hmacer := hmac.New(hasher, []byte(GITHUB_SECRET))
 	hmacer.Write(body)
 	computed := hex.EncodeToString(hmacer.Sum(nil))
 	if computed != signature {
