@@ -58,7 +58,9 @@ func githubWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	computed := hex.EncodeToString(hmac.New(hasher, []byte(GITHUB_SECRET)).Sum(body))
+	hmacer := hmac.New(hasher, GITHUB_SECRET)
+	hmacer.Write(body)
+	computed := hex.EncodeToString(hmacer.Sum(nil))
 	if computed != signature {
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprintln(w, "Invalid signature")
