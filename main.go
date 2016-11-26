@@ -28,14 +28,12 @@ var (
 	GITHUB_SECRET = os.Getenv("GITHUB_SECRET")
 )
 
+const IRCIdleConnectionTimeout = 5 * time.Minute
+
 func must(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func feedWatchdog(connection net.Conn) {
-	connection.SetDeadline(time.Now().Add(time.Duration(5) * time.Minute))
 }
 
 func main() {
@@ -48,9 +46,6 @@ func main() {
 	log.Print("Let's do this thing!\n")
 	c, err := net.Dial("tcp", "irc.chat.twitch.tv:6667")
 	must(err)
-
-	// Set an initial deadline on the IRC socket of 5 minutes from now
-	feedWatchdog(c)
 
 	in := bufio.NewReader(c)
 	out := make(chan string, 1000)
@@ -71,11 +66,10 @@ func main() {
 
 	go func() {
 		for {
+			c.SetReadDeadline(time.Now().Add(IRCIdleConnectionTimeout))
 			line, err := in.ReadSlice('\n')
 			must(err)
 			//log.Printf("[IN]  %s", line)
-			// If we've read something, feed the net.Dial Deadline watchdog
-			feedWatchdog(c)
 			go handle(out, parse(line))
 		}
 	}()
