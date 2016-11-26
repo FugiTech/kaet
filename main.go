@@ -28,6 +28,8 @@ var (
 	GITHUB_SECRET = os.Getenv("GITHUB_SECRET")
 )
 
+const IRCIdleConnectionTimeout = 5 * time.Minute
+
 func must(err error) {
 	if err != nil {
 		log.Fatal(err)
@@ -64,6 +66,7 @@ func main() {
 
 	go func() {
 		for {
+			c.SetReadDeadline(time.Now().Add(IRCIdleConnectionTimeout))
 			line, err := in.ReadSlice('\n')
 			must(err)
 			//log.Printf("[IN]  %s", line)
