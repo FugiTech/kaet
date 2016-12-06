@@ -19,8 +19,8 @@ import (
 )
 
 var (
-	CHANNEL       = "kate"
-	USER          = "kaet"
+	CHANNEL       = os.Getenv("CHANNEL")
+	USER          = os.Getenv("USER")
 	PASSWORD      = os.Getenv("PASSWORD")
 	MASHAPE_KEY   = os.Getenv("MASHAPE_KEY")
 	CLIENT_ID     = os.Getenv("CLIENT_ID")
