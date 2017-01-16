@@ -69,11 +69,12 @@ func init() {
 	cmds.cmds["help"] = &command{cmdHelp, false}
 	cmds.cmds["uptime"] = &command{func(_ string) string { return getUptime(CHANNEL) }, false}
 	cmds.cmds["game"] = &command{func(_ string) string { return getGame(CHANNEL, true) }, false}
-	cmds.cmds["quote"] = &command{func(q string) string { return quotes.Random(q) }, false}
+	cmds.cmds["quote"] = &command{cmdGetQuote, false}
 	cmds.cmds["sourcecode"] = &command{func(q string) string { return "Contribute to kaet's source code at github.com/Fugiman/kaet VoHiYo" }, false}
 
 	// Mod commands
 	cmds.cmds["addquote"] = &command{cmdAddQuote, true}
+	cmds.cmds["removequote"] = &command{cmdRemoveQuote, true}
 	cmds.cmds["addcommand"] = &command{cmdAddCommand, true}
 	cmds.cmds["removecommand"] = &command{cmdRemoveCommand, true}
 
@@ -131,6 +132,32 @@ func cmdAddQuote(quote string) string {
 	}
 	quotes.Append(fmt.Sprintf("%s [Playing %s - %s]", quote, g, t.Format(time.RFC822)))
 	return ""
+}
+
+func cmdRemoveQuote(quoteNum string) string {
+	if strings.HasPrefix(quoteNum, "#") {
+		quoteNum = quoteNum[1:]
+	}
+	// cmdAddQuote relies on continuous numbering, so blank the quotes instead of removing them
+	found := quotes.Blank(quoteNum)
+	if found {
+		return fmt.Sprintf("Removed #%s", quoteNum)
+	} else {
+		return ""
+	}
+}
+
+func cmdGetQuote(query string) string {
+	if strings.HasPrefix(query, "#") {
+		quote, found := quotes.Get(query[1:])
+		if found && quote != "" {
+			return quote
+		} else {
+			return "Not found"
+		}
+	} else {
+		return quotes.Random(query)
+	}
 }
 
 func cmdAddCommand(data string) string {
