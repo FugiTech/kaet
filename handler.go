@@ -166,9 +166,13 @@ func cmdAddCommand(data string) string {
 	defer cmds.Unlock()
 	v := split(data, 2)
 	trigger, msg := strings.TrimPrefix(v[0], "!"), v[1]
-	_, existingCmdFound := cmds.cmds[trigger]
+	existingCmd, existingCmdFound := cmds.cmds[trigger]
 	if (existingCmdFound) {
-		return fmt.Sprintf("There's already a command called %s", trigger)
+		if (existingCmd.removable) {
+			return fmt.Sprintf("There's already a command called %s. You can change it if you remove the old one first.", trigger)
+		} else {
+			return fmt.Sprintf("There's already a command called %s", trigger)
+		}
 	}
 	cmds.store.Add(trigger, msg)
 	cmds.cmds[trigger] = &command{func(_ string) string { return msg }, false, true}
@@ -182,7 +186,7 @@ func cmdRemoveCommand(data string) string {
 	trigger := strings.TrimPrefix(v[0], "!")
 	existingCommand, existingCommandFound := cmds.cmds[trigger];
 	if (existingCommandFound && !existingCommand.removable) {
-		return "That command is not removable"
+		return "I'm afraid I can't remove that command"
 	}
 	cmds.store.Remove(trigger)
 	delete(cmds.cmds, trigger)
