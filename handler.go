@@ -26,6 +26,7 @@ type commands struct {
 type command struct {
 	fn      func(string) string
 	modOnly bool
+	removable bool
 }
 
 func (c *commands) Alias(alias, actual string) {
@@ -62,7 +63,7 @@ func init() {
 	// Dynamic commands
 	for _, k := range cmds.store.Keys() {
 		v, _ := cmds.store.Get(k)
-		cmds.cmds[k] = &command{func(_ string) string { return v }, false}
+		cmds.cmds[k] = &command{func(_ string) string { return v }, false, true}
 	}
 
 	// Pleb commands
@@ -165,8 +166,12 @@ func cmdAddCommand(data string) string {
 	defer cmds.Unlock()
 	v := split(data, 2)
 	trigger, msg := strings.TrimPrefix(v[0], "!"), v[1]
+	_, existingCmdFound := cmds.cmds[trigger]
+	if (existingCmdFound) {
+		return fmt.Sprintf("There's already a command called %s", trigger)
+	}
 	cmds.store.Add(trigger, msg)
-	cmds.cmds[trigger] = &command{func(_ string) string { return msg }, false}
+	cmds.cmds[trigger] = &command{func(_ string) string { return msg }, false, true}
 	return ""
 }
 
@@ -175,6 +180,10 @@ func cmdRemoveCommand(data string) string {
 	defer cmds.Unlock()
 	v := split(data, 2)
 	trigger := strings.TrimPrefix(v[0], "!")
+	existingCommand, existingCommandFound := cmds.cmds[trigger];
+	if (existingCommandFound && !existingCommand.removable) {
+		return "That command is not removable"
+	}
 	cmds.store.Remove(trigger)
 	delete(cmds.cmds, trigger)
 	return ""
