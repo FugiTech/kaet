@@ -67,17 +67,17 @@ func init() {
 	}
 
 	// Pleb commands
-	cmds.cmds["help"] = &command{cmdHelp, false}
-	cmds.cmds["uptime"] = &command{func(_ string) string { return getUptime(CHANNEL) }, false}
-	cmds.cmds["game"] = &command{func(_ string) string { return getGame(CHANNEL, true) }, false}
-	cmds.cmds["quote"] = &command{cmdGetQuote, false}
-	cmds.cmds["sourcecode"] = &command{func(q string) string { return "Contribute to kaet's source code at github.com/Fugiman/kaet VoHiYo" }, false}
+	cmds.cmds["help"] = &command{cmdHelp, false, false}
+	cmds.cmds["uptime"] = &command{func(_ string) string { return getUptime(CHANNEL) }, false, false}
+	cmds.cmds["game"] = &command{func(_ string) string { return getGame(CHANNEL, true) }, false, false}
+	cmds.cmds["quote"] = &command{cmdGetQuote, false, false}
+	cmds.cmds["sourcecode"] = &command{func(q string) string { return "Contribute to kaet's source code at github.com/Fugiman/kaet VoHiYo" }, false, false}
 
 	// Mod commands
-	cmds.cmds["addquote"] = &command{cmdAddQuote, true}
-	cmds.cmds["removequote"] = &command{cmdRemoveQuote, true}
-	cmds.cmds["addcommand"] = &command{cmdAddCommand, true}
-	cmds.cmds["removecommand"] = &command{cmdRemoveCommand, true}
+	cmds.cmds["addquote"] = &command{cmdAddQuote, true, false}
+	cmds.cmds["removequote"] = &command{cmdRemoveQuote, true, false}
+	cmds.cmds["addcommand"] = &command{cmdAddCommand, true, false}
+	cmds.cmds["removecommand"] = &command{cmdRemoveCommand, true, false}
 
 	// Aliases
 	cmds.Alias("halp", "help")
