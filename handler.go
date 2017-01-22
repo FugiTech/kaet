@@ -167,12 +167,8 @@ func cmdAddCommand(data string) string {
 	v := split(data, 2)
 	trigger, msg := strings.TrimPrefix(v[0], "!"), v[1]
 	existingCmd, existingCmdFound := cmds.cmds[trigger]
-	if (existingCmdFound) {
-		if (existingCmd.removable) {
-			return fmt.Sprintf("There's already a command called %s. You can change it if you remove the old one first.", trigger)
-		} else {
-			return fmt.Sprintf("There's already a command called %s", trigger)
-		}
+	if (existingCmdFound && !existingCmd.removable) {
+		return "I'm afraid I can't modify that command"
 	}
 	cmds.store.Add(trigger, msg)
 	cmds.cmds[trigger] = &command{func(_ string) string { return msg }, false, true}
