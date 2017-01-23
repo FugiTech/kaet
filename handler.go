@@ -26,6 +26,7 @@ type commands struct {
 type command struct {
 	fn      func(string) string
 	modOnly bool
+	removable bool
 }
 
 func (c *commands) Alias(alias, actual string) {
@@ -62,21 +63,21 @@ func init() {
 	// Dynamic commands
 	for _, k := range cmds.store.Keys() {
 		v, _ := cmds.store.Get(k)
-		cmds.cmds[k] = &command{func(_ string) string { return v }, false}
+		cmds.cmds[k] = &command{func(_ string) string { return v }, false, true}
 	}
 
 	// Pleb commands
-	cmds.cmds["help"] = &command{cmdHelp, false}
-	cmds.cmds["uptime"] = &command{func(_ string) string { return getUptime(CHANNEL) }, false}
-	cmds.cmds["game"] = &command{func(_ string) string { return getGame(CHANNEL, true) }, false}
-	cmds.cmds["quote"] = &command{cmdGetQuote, false}
-	cmds.cmds["sourcecode"] = &command{func(q string) string { return "Contribute to kaet's source code at github.com/Fugiman/kaet VoHiYo" }, false}
+	cmds.cmds["help"] = &command{cmdHelp, false, false}
+	cmds.cmds["uptime"] = &command{func(_ string) string { return getUptime(CHANNEL) }, false, false}
+	cmds.cmds["game"] = &command{func(_ string) string { return getGame(CHANNEL, true) }, false, false}
+	cmds.cmds["quote"] = &command{cmdGetQuote, false, false}
+	cmds.cmds["sourcecode"] = &command{func(q string) string { return "Contribute to kaet's source code at github.com/Fugiman/kaet VoHiYo" }, false, false}
 
 	// Mod commands
-	cmds.cmds["addquote"] = &command{cmdAddQuote, true}
-	cmds.cmds["removequote"] = &command{cmdRemoveQuote, true}
-	cmds.cmds["addcommand"] = &command{cmdAddCommand, true}
-	cmds.cmds["removecommand"] = &command{cmdRemoveCommand, true}
+	cmds.cmds["addquote"] = &command{cmdAddQuote, true, false}
+	cmds.cmds["removequote"] = &command{cmdRemoveQuote, true, false}
+	cmds.cmds["addcommand"] = &command{cmdAddCommand, true, false}
+	cmds.cmds["removecommand"] = &command{cmdRemoveCommand, true, false}
 
 	// Aliases
 	cmds.Alias("halp", "help")
@@ -165,8 +166,12 @@ func cmdAddCommand(data string) string {
 	defer cmds.Unlock()
 	v := split(data, 2)
 	trigger, msg := strings.TrimPrefix(v[0], "!"), v[1]
+	existingCmd, existingCmdFound := cmds.cmds[trigger]
+	if (existingCmdFound && !existingCmd.removable) {
+		return "I'm afraid I can't modify that command"
+	}
 	cmds.store.Add(trigger, msg)
-	cmds.cmds[trigger] = &command{func(_ string) string { return msg }, false}
+	cmds.cmds[trigger] = &command{func(_ string) string { return msg }, false, true}
 	return ""
 }
 
@@ -175,6 +180,10 @@ func cmdRemoveCommand(data string) string {
 	defer cmds.Unlock()
 	v := split(data, 2)
 	trigger := strings.TrimPrefix(v[0], "!")
+	existingCommand, existingCommandFound := cmds.cmds[trigger];
+	if (existingCommandFound && !existingCommand.removable) {
+		return "I'm afraid I can't remove that command"
+	}
 	cmds.store.Remove(trigger)
 	delete(cmds.cmds, trigger)
 	return ""
