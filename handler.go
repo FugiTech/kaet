@@ -103,7 +103,8 @@ func handle(out chan string, m *message) {
 		for _, prefix := range cmdPrefixes {
 			if strings.HasPrefix(msg, prefix) {
 				p := split(m.Args[1][len(prefix):], 2)
-				if c := cmds.Get(p[0]); c != nil && (!c.modOnly || m.Mod) {
+				isMod := m.Mod || m.UserID != "" && m.RoomID == m.UserID
+				if c := cmds.Get(p[0]); c != nil && (!c.modOnly || isMod) {
 					if response := c.fn(p[1]); response != "" {
 						out <- fmt.Sprintf("PRIVMSG %s :\u200B%s\r\n", m.Args[0], response)
 					}
