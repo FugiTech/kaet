@@ -11,8 +11,8 @@ type message struct {
 	Mod         bool
 	Sub         bool
 	Command     string
-	RoomId      string
-	UserId      string
+	RoomID      string
+	UserID      string
 	Args        []string
 }
 
@@ -112,9 +112,9 @@ func handleTag(m *message, k string, v string) {
 	case "display-name":
 		m.DisplayName = v
 	case "user-id":
-		m.UserId = v
+		m.UserID = v
 	case "room-id":
-		m.RoomId = v
+		m.RoomID = v
 	case "mod":
 		m.Mod = v == "1"
 	case "subscriber":
