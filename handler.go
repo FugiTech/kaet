@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -12,6 +13,7 @@ import (
 var (
 	cmdPrefixes []string
 	quotes      *store
+	counters    *store
 	cmds        *commands
 )
 
@@ -51,6 +53,7 @@ func init() {
 	cmdPrefixes = []string{"!", USER + " ", fmt.Sprintf("@%s ", USER)}
 
 	quotes = Store("quotes")
+	counters = Store("counters")
 
 	cmds = &commands{
 		cmds:     map[string]*command{},
@@ -60,6 +63,16 @@ func init() {
 	}
 
 	// Dynamic commands
+	for _, k := range counters.Keys() {
+		k := k
+		cmds.cmds[k] = &command{func(_ string) string {
+			v, _ := counters.Get(k)
+			if v == "" {
+				v = "0"
+			}
+			return v
+		}, false}
+	}
 	for _, k := range cmds.store.Keys() {
 		v, _ := cmds.store.Get(k)
 		cmds.cmds[k] = &command{func(_ string) string { return v }, false}
@@ -76,6 +89,9 @@ func init() {
 	cmds.cmds["addquote"] = &command{cmdAddQuote, true}
 	cmds.cmds["addcommand"] = &command{cmdAddCommand, true}
 	cmds.cmds["removecommand"] = &command{cmdRemoveCommand, true}
+	cmds.cmds["increment"] = &command{cmdIncrement, true}
+	cmds.cmds["decrement"] = &command{cmdDecrement, true}
+	cmds.cmds["reset"] = &command{cmdReset, true}
 
 	// Aliases
 	cmds.Alias("halp", "help")
@@ -88,6 +104,8 @@ func init() {
 	cmds.Alias("delcommand", "removecommand")
 	cmds.Alias("source", "sourcecode")
 	cmds.Alias("code", "sourcecode")
+	cmds.Alias("inc", "increment")
+	cmds.Alias("dec", "decrement")
 }
 
 func handle(out chan string, m *message) {
@@ -151,6 +169,43 @@ func cmdRemoveCommand(data string) string {
 	cmds.store.Remove(trigger)
 	delete(cmds.cmds, trigger)
 	return ""
+}
+
+func cmdIncrement(data string) string {
+	cmds.Lock()
+	defer cmds.Unlock()
+
+	count := 0
+	if v, ok := counters.Get(data); ok {
+		count, _ = strconv.Atoi(v)
+	}
+	count++
+
+	counters.Add(data, strconv.Itoa(count))
+	return fmt.Sprintf("%d", count)
+}
+
+func cmdDecrement(data string) string {
+	cmds.Lock()
+	defer cmds.Unlock()
+
+	count := 0
+	if v, ok := counters.Get(data); ok {
+		count, _ = strconv.Atoi(v)
+	}
+	count--
+
+	counters.Add(data, strconv.Itoa(count))
+	return fmt.Sprintf("%d", count)
+}
+
+func cmdReset(data string) string {
+	cmds.Lock()
+	defer cmds.Unlock()
+
+	count := 0
+	counters.Remove(data)
+	return fmt.Sprintf("%d", count)
 }
 
 func split(s string, p int) []string {
