@@ -19,13 +19,13 @@ import (
 )
 
 var (
-	CHANNEL       = "kate"
-	USER          = "kaet"
-	PASSWORD      = os.Getenv("PASSWORD")
-	MASHAPE_KEY   = os.Getenv("MASHAPE_KEY")
-	CLIENT_ID     = os.Getenv("CLIENT_ID")
-	CLIENT_SECRET = os.Getenv("CLIENT_SECRET")
-	GITHUB_SECRET = os.Getenv("GITHUB_SECRET")
+	CHANNEL       = os.Getenv("BOT_CHANNEL")
+	USER          = os.Getenv("BOT_USER")
+	PASSWORD      = os.Getenv("BOT_PASSWORD")
+	MASHAPE_KEY   = os.Getenv("BOT_MASHAPE_KEY")
+	CLIENT_ID     = os.Getenv("BOT_CLIENT_ID")
+	CLIENT_SECRET = os.Getenv("BOT_CLIENT_SECRET")
+	GITHUB_SECRET = os.Getenv("BOT_GITHUB_SECRET")
 )
 
 const IRCIdleConnectionTimeout = 5 * time.Minute
