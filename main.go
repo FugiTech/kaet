@@ -26,6 +26,7 @@ var (
 	CLIENT_ID     = os.Getenv("BOT_CLIENT_ID")
 	CLIENT_SECRET = os.Getenv("BOT_CLIENT_SECRET")
 	GITHUB_SECRET = os.Getenv("BOT_GITHUB_SECRET")
+	CURRENCY_NAME = os.Getenv("BOT_CURRENCY_NAME")
 )
 
 const IRCIdleConnectionTimeout = 5 * time.Minute
