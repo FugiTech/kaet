@@ -292,7 +292,7 @@ func cmdOpen(_ *User, data string) string {
 	}
 	cmds.bettingOpen = true
 
-	return fmt.Sprintf("Betting is now open! %s Choices are: %q. Use !bet <choice> <amount> to join!", reason, strings.Join(choices[:len(choices)-1], `", "`)+`", or "`+choices[len(choices)-1])
+	return fmt.Sprintf("Betting is now open! %s Choices are: \"%s\". Use !bet <choice> <amount> to join!", reason, strings.Join(choices[:len(choices)-1], `", "`)+`", or "`+choices[len(choices)-1])
 }
 
 func cmdClose(_ *User, _ string) string {
