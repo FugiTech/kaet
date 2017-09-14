@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"fmt"
 )
 
 type store struct {
@@ -55,6 +56,17 @@ func (s *store) Remove(key string) {
 	delete(s.data, key)
 	s.save()
 }
+func (s *store) Blank(key string) bool {
+	s.Lock()
+	defer s.Unlock()
+	val, found := s.data[key]
+	doBlank := found && val != ""
+	if doBlank {
+		s.data[key] = ""
+		s.save()
+	}
+	return doBlank
+}
 
 // READ
 func (s *store) Keys() []string {
@@ -77,14 +89,15 @@ func (s *store) Random(query string) string {
 	query = strings.ToLower(query)
 	s.RLock()
 	defer s.RUnlock()
-	values := make([]string, 0, len(s.data))
-	for _, v := range s.data {
-		if query == "" || strings.Contains(strings.ToLower(v), query) {
-			values = append(values, v)
+	keys := make([]string, 0, len(s.data))
+	for k, v := range s.data {
+		if v != "" && (query == "" || strings.Contains(strings.ToLower(v), query)) {
+			keys = append(keys, k)
 		}
 	}
-	if len(values) == 0 {
+	if len(keys) == 0 {
 		return "None Found"
 	}
-	return values[rand.Intn(len(values))]
+	selectedKey := keys[rand.Intn(len(keys))]
+	return fmt.Sprintf("%s #%s", s.data[selectedKey], selectedKey)
 }

@@ -35,12 +35,12 @@ func roundToSeconds(d time.Duration) time.Duration {
 
 func getUptime(channel string) string {
 	var data struct {
-		Stream struct {
+		Stream *struct {
 			CreatedAt time.Time `json:"created_at"`
 		}
 	}
 	err := kraken(&data, "streams", channel)
-	if err != nil {
+	if err != nil || data.Stream == nil {
 		log.Printf("getUptime=%v", err)
 		return fmt.Sprintf("%s is not online", channel)
 	}

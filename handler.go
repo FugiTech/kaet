@@ -26,8 +26,9 @@ type commands struct {
 }
 
 type command struct {
-	fn      func(string) string
-	modOnly bool
+	fn        func(string) string
+	modOnly   bool
+	removable bool
 }
 
 func (c *commands) Alias(alias, actual string) {
@@ -64,34 +65,27 @@ func init() {
 
 	// Dynamic commands
 	for _, k := range counters.Keys() {
-		k := k
-		cmds.cmds[k] = &command{func(_ string) string {
-			v, _ := counters.Get(k)
-			if v == "" {
-				v = "0"
-			}
-			return v
-		}, false}
+		cmds.cmds[k] = &command{cmdCounter(k), false, false}
 	}
 	for _, k := range cmds.store.Keys() {
 		v, _ := cmds.store.Get(k)
-		cmds.cmds[k] = &command{func(_ string) string { return v }, false}
+		cmds.cmds[k] = &command{func(_ string) string { return v }, false, true}
 	}
 
 	// Pleb commands
-	cmds.cmds["help"] = &command{cmdHelp, false}
-	cmds.cmds["uptime"] = &command{func(_ string) string { return getUptime(CHANNEL) }, false}
-	cmds.cmds["game"] = &command{func(_ string) string { return getGame(CHANNEL, true) }, false}
-	cmds.cmds["quote"] = &command{func(q string) string { return quotes.Random(q) }, false}
-	cmds.cmds["sourcecode"] = &command{func(q string) string { return "Contribute to kaet's source code at github.com/Fugiman/kaet VoHiYo" }, false}
+	cmds.cmds["help"] = &command{cmdHelp, false, false}
+	cmds.cmds["uptime"] = &command{func(_ string) string { return getUptime(CHANNEL) }, false, false}
+	cmds.cmds["game"] = &command{func(_ string) string { return getGame(CHANNEL, true) }, false, false}
+	cmds.cmds["quote"] = &command{cmdGetQuote, false, false}
+	cmds.cmds["sourcecode"] = &command{func(q string) string { return "Contribute to kaet's source code at github.com/Fugiman/kaet VoHiYo" }, false, false}
 
 	// Mod commands
-	cmds.cmds["addquote"] = &command{cmdAddQuote, true}
-	cmds.cmds["addcommand"] = &command{cmdAddCommand, true}
-	cmds.cmds["removecommand"] = &command{cmdRemoveCommand, true}
-	cmds.cmds["increment"] = &command{cmdIncrement, true}
-	cmds.cmds["decrement"] = &command{cmdDecrement, true}
-	cmds.cmds["reset"] = &command{cmdReset, true}
+	cmds.cmds["addquote"] = &command{cmdAddQuote, true, false}
+	cmds.cmds["addcommand"] = &command{cmdAddCommand, true, false}
+	cmds.cmds["removecommand"] = &command{cmdRemoveCommand, true, false}
+	cmds.cmds["increment"] = &command{cmdIncrement, true, false}
+	cmds.cmds["decrement"] = &command{cmdDecrement, true, false}
+	cmds.cmds["reset"] = &command{cmdReset, true, false}
 
 	// Aliases
 	cmds.Alias("halp", "help")
@@ -119,7 +113,8 @@ func handle(out chan string, m *message) {
 		for _, prefix := range cmdPrefixes {
 			if strings.HasPrefix(msg, prefix) {
 				p := split(m.Args[1][len(prefix):], 2)
-				if c := cmds.Get(p[0]); c != nil && (!c.modOnly || m.Mod) {
+				isMod := m.Mod || m.UserID != "" && m.RoomID == m.UserID
+				if c := cmds.Get(p[0]); c != nil && (!c.modOnly || isMod) {
 					if response := c.fn(p[1]); response != "" {
 						out <- fmt.Sprintf("PRIVMSG %s :\u200B%s\r\n", m.Args[0], response)
 					}
@@ -134,7 +129,7 @@ func cmdHelp(_ string) string {
 	cmds.RLock()
 	defer cmds.RUnlock()
 	names := []string{}
-	for k, _ := range cmds.cmds {
+	for k := range cmds.cmds {
 		names = append(names, k)
 	}
 	sort.Strings(names)
@@ -151,13 +146,38 @@ func cmdAddQuote(quote string) string {
 	return ""
 }
 
+func cmdRemoveQuote(quoteNum string) string {
+	if strings.HasPrefix(quoteNum, "#") {
+		quoteNum = quoteNum[1:]
+	}
+	// cmdAddQuote relies on continuous numbering, so blank the quotes instead of removing them
+	if quotes.Blank(quoteNum) {
+		return fmt.Sprintf("Removed #%s", quoteNum)
+	}
+	return ""
+}
+
+func cmdGetQuote(query string) string {
+	if strings.HasPrefix(query, "#") {
+		if quote, found := quotes.Get(query[1:]); found && quote != "" {
+			return quote
+		}
+		return "Not found"
+	}
+	return quotes.Random(query)
+}
+
 func cmdAddCommand(data string) string {
 	cmds.Lock()
 	defer cmds.Unlock()
 	v := split(data, 2)
 	trigger, msg := strings.TrimPrefix(v[0], "!"), v[1]
+	existingCmd, existingCmdFound := cmds.cmds[trigger]
+	if existingCmdFound && !existingCmd.removable {
+		return "I'm afraid I can't modify that command"
+	}
 	cmds.store.Add(trigger, msg)
-	cmds.cmds[trigger] = &command{func(_ string) string { return msg }, false}
+	cmds.cmds[trigger] = &command{func(_ string) string { return msg }, false, true}
 	return ""
 }
 
@@ -166,6 +186,10 @@ func cmdRemoveCommand(data string) string {
 	defer cmds.Unlock()
 	v := split(data, 2)
 	trigger := strings.TrimPrefix(v[0], "!")
+	existingCommand, existingCommandFound := cmds.cmds[trigger]
+	if existingCommandFound && !existingCommand.removable {
+		return "I'm afraid I can't remove that command"
+	}
 	cmds.store.Remove(trigger)
 	delete(cmds.cmds, trigger)
 	return ""
@@ -182,6 +206,7 @@ func cmdIncrement(data string) string {
 	count++
 
 	counters.Add(data, strconv.Itoa(count))
+	cmds.cmds[data] = &command{cmdCounter(data), false, false}
 	return fmt.Sprintf("%d", count)
 }
 
@@ -196,6 +221,7 @@ func cmdDecrement(data string) string {
 	count--
 
 	counters.Add(data, strconv.Itoa(count))
+	cmds.cmds[data] = &command{cmdCounter(data), false, false}
 	return fmt.Sprintf("%d", count)
 }
 
@@ -206,6 +232,16 @@ func cmdReset(data string) string {
 	count := 0
 	counters.Remove(data)
 	return fmt.Sprintf("%d", count)
+}
+
+func cmdCounter(k string) func(string) string {
+	return func(_ string) string {
+		v, _ := counters.Get(k)
+		if v == "" {
+			v = "0"
+		}
+		return v
+	}
 }
 
 func split(s string, p int) []string {
