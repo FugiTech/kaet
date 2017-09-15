@@ -249,6 +249,7 @@ func cmdReset(_ *User, data string) string {
 
 	count := 0
 	counters.Remove(data)
+	delete(cmds.cmds, data)
 	return fmt.Sprintf("%d", count)
 }
 
