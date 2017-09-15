@@ -349,7 +349,7 @@ func cmdPayout(_ *User, data string) string {
 		balances.Add(user, strconv.Itoa(earnings))
 	}
 
-	return fmt.Sprintf("Congrats and condolences: %d crumbs were paid out to %d winners! ", payout, len(winners))
+	return fmt.Sprintf("Congrats and condolences: %d %s were paid out to %d winners! ", payout, CURRENCY_NAME, len(winners))
 }
 
 func cmdBet(u *User, data string) string {
