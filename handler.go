@@ -345,8 +345,14 @@ func cmdPayout(_ *User, data string) string {
 	}
 
 	for user, amount := range winners {
+		b, _ := balances.Get(u.ID)
+		balance, _ := strconv.Atoi(b)
+		if balance <= 0 {
+			balance = 1000
+		}
+
 		earnings := int(math.Ceil((float64(amount) / float64(winnerTotal)) * float64(payout)))
-		balances.Add(user, strconv.Itoa(earnings))
+		balances.Add(user, strconv.Itoa(balance+earnings))
 	}
 
 	return fmt.Sprintf("Congrats and condolences: %d %s were paid out to %d winners! ", payout, CURRENCY_NAME, len(winners))
