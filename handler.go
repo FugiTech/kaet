@@ -217,9 +217,13 @@ func cmdIncrement(_ *User, data string) string {
 	cmds.Lock()
 	defer cmds.Unlock()
 
+	data = strings.Replace(strings.ToLower(data), " ", "-", -1)
+
 	count := 0
 	if v, ok := counters.Get(data); ok {
 		count, _ = strconv.Atoi(v)
+	} else if _, ok := cmds.cmds[data]; ok {
+		return fmt.Sprintf("Can't use %q as a counter, it's already a command!", data)
 	}
 	count++
 
@@ -232,9 +236,13 @@ func cmdDecrement(_ *User, data string) string {
 	cmds.Lock()
 	defer cmds.Unlock()
 
+	data = strings.Replace(strings.ToLower(data), " ", "-", -1)
+
 	count := 0
 	if v, ok := counters.Get(data); ok {
 		count, _ = strconv.Atoi(v)
+	} else if _, ok := cmds.cmds[data]; ok {
+		return fmt.Sprintf("Can't use %q as a counter, it's already a command!", data)
 	}
 	count--
 
@@ -247,10 +255,15 @@ func cmdReset(_ *User, data string) string {
 	cmds.Lock()
 	defer cmds.Unlock()
 
-	count := 0
+	data = strings.Replace(strings.ToLower(data), " ", "-", -1)
+
+	if _, ok := counters.Get(data); !ok {
+		return "That counter doesn't exist"
+	}
+
 	counters.Remove(data)
 	delete(cmds.cmds, data)
-	return fmt.Sprintf("%d", count)
+	return "Removed counter"
 }
 
 func cmdCounter(k string) func(*User, string) string {
