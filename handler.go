@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"os"
 	"sort"
 	"strconv"
@@ -92,6 +93,7 @@ func init() {
 	}, false, false}
 	cmds.cmds["bet"] = &command{cmdBet, false, false}
 	cmds.cmds[CURRENCY_NAME] = &command{cmdBalance, false, false}
+	cmds.cmds["roll"] = &command{cmdRoll, false, false}
 
 	// Mod commands
 	cmds.cmds["addquote"] = &command{cmdAddQuote, true, false}
@@ -431,6 +433,43 @@ func cmdBalance(u *User, data string) string {
 	}
 
 	return fmt.Sprintf("%s has %d %s!", u.Name, balance, CURRENCY_NAME)
+}
+
+func cmdRoll(_ *User, data string) string {
+	const ErrInvalidFormat = "Invalid roll. Use format: 1d6"
+	rolls := []int{}
+	for _, die := range strings.Split(strings.ToLower(data), " ") {
+		p := strings.Split(die, "d")
+		if len(p) != 2 {
+			return ErrInvalidFormat
+		}
+		if p[0] == "" {
+			p[0] = "1"
+		}
+		num, err := strconv.Atoi(p[0])
+		if err != nil {
+			return ErrInvalidFormat
+		}
+		sides, err := strconv.Atoi(p[1])
+		if err != nil {
+			return ErrInvalidFormat
+		}
+		if num <= 0 || sides <= 1 {
+			return ErrInvalidFormat
+		}
+		for i := 0; i < num; i++ {
+			rolls = append(rolls, rand.Intn(sides))
+		}
+	}
+
+	total := 0
+	rollsStr := []string{}
+	for _, v := range rolls {
+		total += v
+		rollsStr = append(rollsStr, strconv.Itoa(v))
+	}
+
+	return fmt.Sprintf("Rolled a %d! (%s)", total, strings.Join(rollsStr, " "))
 }
 
 func split(s string, p int) []string {

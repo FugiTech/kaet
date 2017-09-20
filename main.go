@@ -12,6 +12,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -35,6 +36,10 @@ func must(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
 }
 
 func main() {
