@@ -458,7 +458,7 @@ func cmdRoll(_ *User, data string) string {
 			return ErrInvalidFormat
 		}
 		for i := 0; i < num; i++ {
-			rolls = append(rolls, rand.Intn(sides))
+			rolls = append(rolls, rand.Intn(sides)+1)
 		}
 	}
 
