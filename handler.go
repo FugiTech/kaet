@@ -97,6 +97,7 @@ func init() {
 
 	// Mod commands
 	cmds.cmds["addquote"] = &command{cmdAddQuote, true, false}
+	cmds.cmds["removequote"] = &command{cmdRemoveQuote, true, false}
 	cmds.cmds["addcommand"] = &command{cmdAddCommand, true, false}
 	cmds.cmds["removecommand"] = &command{cmdRemoveCommand, true, false}
 	cmds.cmds["increment"] = &command{cmdIncrement, true, false}
