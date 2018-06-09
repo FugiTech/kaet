@@ -84,7 +84,6 @@ func init() {
 	}
 
 	// Pleb commands
-	cmds.cmds["help"] = &command{cmdHelp, false, false}
 	cmds.cmds["uptime"] = &command{func(_ *User, _ string) string { return getUptime(CHANNEL) }, false, false}
 	cmds.cmds["game"] = &command{func(_ *User, _ string) string { return getGame(CHANNEL, true) }, false, false}
 	cmds.cmds["quote"] = &command{cmdGetQuote, false, false}
@@ -96,6 +95,7 @@ func init() {
 	cmds.cmds["roll"] = &command{cmdRoll, false, false}
 
 	// Mod commands
+	cmds.cmds["help"] = &command{cmdHelp, true, false}
 	cmds.cmds["addquote"] = &command{cmdAddQuote, true, false}
 	cmds.cmds["removequote"] = &command{cmdRemoveQuote, true, false}
 	cmds.cmds["addcommand"] = &command{cmdAddCommand, true, false}
